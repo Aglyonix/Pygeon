@@ -1,8 +1,8 @@
-import random
+from random import *
 import os
 from Sprites import *
 from Enemys import *
-from Bowyer_Watson import *
+from Graph import *
 
 class Map:
     """
@@ -28,7 +28,8 @@ class Map:
         self.Objects = []
         self.Entitys = []
         self.rooms = self.get_rooms()
-        self.data = {'map': self.create_map(), 'rooms': [], 'points': [], 'edges': []}
+        self.data = {'map': self.create_map(), 'rooms': []}
+        self.Graph = Graph()
 
     def display(self, offset=pygame.Vector2(0, 0)) -> None:
         size = 8
@@ -37,29 +38,18 @@ class Map:
             pygame.draw.line(self.tag['group'].display_surface, 'blue', (((room.args['offset'][0]+room.get_size()[1])*size - offset.x), (room.args['offset'][1]*size - offset.y)), (((room.args['offset'][0]+room.get_size()[1])*size - offset.x), ((room.args['offset'][1]+room.get_size()[0])*size - offset.y)), 2)
             pygame.draw.line(self.tag['group'].display_surface, 'blue', (((room.args['offset'][0]+room.get_size()[1])*size - offset.x), ((room.args['offset'][1]+room.get_size()[0])*size - offset.y)), ((room.args['offset'][0]*size - offset.x), ((room.args['offset'][1]+room.get_size()[0])*size - offset.y)), 2)
             pygame.draw.line(self.tag['group'].display_surface, 'blue', ((room.args['offset'][0]*size - offset.x), ((room.args['offset'][1]+room.get_size()[0])*size - offset.y)), ((room.args['offset'][0]*size - offset.x), (room.args['offset'][1]*size - offset.y)), 2)
-        for p in self.data['points']:
-            pygame.draw.rect(self.tag['group'].display_surface, 'red', Rect((p.x*size - offset.x - size/2), (p.y*size - offset.y - size/2), 8, 8))
-        for edge in self.data['edges']:
-            pygame.draw.line(self.tag['group'].display_surface, 'green', ((edge[0].x*size - offset.x), (edge[0].y*size - offset.y)), ((edge[1].x*size - offset.x), (edge[1].y*size - offset.y)), 2)
+        for v in self.Graph.vertices:
+            pygame.draw.rect(self.tag['group'].display_surface, 'red', Rect((v.x*size - offset.x - size/2), (v.y*size - offset.y - size/2), 8, 8))
+        for e in self.Graph.edges:
+            pygame.draw.line(self.tag['group'].display_surface, 'green', ((e.vertices[0].x*size - offset.x), (e.vertices[0].y*size - offset.y)), ((e.vertices[1].x*size - offset.x), (e.vertices[1].y*size - offset.y)), 2)
 
     def load(self) -> None:
         self.place_rooms()
-        self.triangulation()
-
-    def triangulation(self) -> None:
         for room in self.data['rooms']:
+            Alph = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
             size = room.get_size()
-            self.data['points'].append(Point((room.args['offset'][0] + size[1]/2), (room.args['offset'][1] + size[0]/2)))
-
-        Algo = Delaunay_Triangulation(self.tag['size'][0], self.tag['size'][1])
-
-        for p in self.data['points']:
-            Algo.AddPoint(p)
-        Algo.Remove_Supra_Triangles()
-
-        for triangle in Algo.triangulation:
-            for edge in triangle.edges:
-                self.data['edges'].append(edge)
+            self.Graph.addvertex(Vertex(Alph[self.data['rooms'].index(room)], (room.args['offset'][0] + size[1]/2), (room.args['offset'][1] + size[0]/2)))
+        self.Graph.triangulation()
 
     def load_rooms(self) -> None:
         for r in self.data['rooms']:
@@ -71,7 +61,7 @@ class Map:
         """
         for _ in range(self.tag['n']):
             # Choose a Room
-            r = Room(random.choice(self.rooms), self.tag['group'], self.tag['entitys'])
+            r = Room(choice(self.rooms), self.tag['group'], self.tag['entitys'])
             self.place_room(r)
 
     def place_room(self, room: object) -> None:
@@ -122,7 +112,7 @@ class Map:
         if pos == []:
             return None
         
-        return random.choice(pos)
+        return choice(pos)
     
         """
         ### Tentative d'optimisation

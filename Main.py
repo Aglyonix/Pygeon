@@ -26,7 +26,7 @@ class App:
         self.Map = Map(self.camera_group, self.Entitys)
         self.Map.load()
         
-        self.player = Player(((self.Map.data['points'][0].x)*8, (self.Map.data['points'][0].y)*8), self.camera_group)
+        self.player = Player(((self.Map.Graph.vertices[0].x)*8, (self.Map.Graph.vertices[0].y)*8), self.camera_group)
         self.Entitys.append(self.player)
 
         self.Mouse = Mouse(self.camera_group)
@@ -43,7 +43,7 @@ class App:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     self.player.shoot(self.Entitys, self.Mouse, self.camera_group)
 
-            self.screen.fill('#71ddee')
+            self.screen.fill('#466365')
 
             self.update()
             self.display()
